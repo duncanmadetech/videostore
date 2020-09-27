@@ -130,6 +130,7 @@ You owe 4.0
 You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
 
+
 def test_hire_one_new_video_for_five_days():
     statement = GetStatement()
     customer_name = "Duncan Bell"
@@ -140,6 +141,7 @@ The Web  15.0
 You owe 15.0
 You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
+
 
 def test_hire_two_child_videos_for_three_days():
     statement = GetStatement()
@@ -152,6 +154,7 @@ Frozen  1.5
 You owe 3.0
 You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
+
 
 def test_hire_two_child_videos_for_more_than_three_days():
     statement = GetStatement()
