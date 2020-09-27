@@ -16,7 +16,8 @@ class GetStatement(object):
             {'name': "Crazynotes", 'category': "Regular"},
             {'name': "Teeth", 'category': "Regular"},
             {'name': "The Web", 'category': "New"},
-            {'name': "Snow White", 'category': "Children"}
+            {'name': "Snow White", 'category': "Children"},
+            {'name': "Frozen", 'category': "Children"}
         ]
         category = next((item['category'] for item in videos if item['name'] == video), None)
         return category
@@ -34,22 +35,22 @@ class GetStatement(object):
         first_day = next((item['first_day'] for item in categories if item['category'] == category), None)
         extra_days = next((item['extra_days'] for item in categories if item['category'] == category), None)
 
+        if category == "Regular":
+            if number_of_days <= 2:
+                cost = float(first_day)
+            elif number_of_days > 2:
+                cost = float(first_day) + float(extra_days) * float(number_of_days - 1)
+            return cost
+
         if category == "New":
             cost = float(first_day) + float(extra_days) * float(number_of_days - 1)
             return cost
 
-        if category == "Regular":
-            if number_of_days == 1:
-                cost = float(first_day)
-            elif number_of_days == 2:
-                cost = float(first_day)
-            return cost
-
         if category == "Children":
-            if number_of_days == 1:
+            if number_of_days <= 3:
                 cost = float(first_day)
-            elif number_of_days == 2:
-                cost = float(first_day) + float(extra_days)
+            else:
+                cost = float(first_day) + float(extra_days) * float(number_of_days - 3)
             return cost
 
     @staticmethod
@@ -137,5 +138,29 @@ def test_hire_one_new_video_for_five_days():
     expected_statement = """Rental Record for {customer_name}
 The Web  15.0
 You owe 15.0
+You earned 2 frequent renter points""".format(customer_name=customer_name)
+    assert statement.execute(customer_name, videos, number_of_days) == expected_statement
+
+def test_hire_two_child_videos_for_three_days():
+    statement = GetStatement()
+    customer_name = "Duncan Bell"
+    videos = ["Snow White", "Frozen"]
+    number_of_days = 3
+    expected_statement = """Rental Record for {customer_name}
+Snow White  1.5
+Frozen  1.5
+You owe 3.0
+You earned 2 frequent renter points""".format(customer_name=customer_name)
+    assert statement.execute(customer_name, videos, number_of_days) == expected_statement
+
+def test_hire_two_child_videos_for_more_than_three_days():
+    statement = GetStatement()
+    customer_name = "Duncan Bell"
+    videos = ["Snow White", "Frozen"]
+    number_of_days = 5
+    expected_statement = """Rental Record for {customer_name}
+Snow White  4.5
+Frozen  4.5
+You owe 9.0
 You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
