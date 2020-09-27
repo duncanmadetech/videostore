@@ -54,13 +54,11 @@ class GetStatement(object):
 
     @staticmethod
     def check_frequent_renter_points(category, number_of_days):
-        categories = [
-            {'category': "Regular", 'points': "1"},
-            {'category': "New", 'points': "1"},
-            {'category': "Children", 'points': "1"}
-        ]
-        frp = next((item['points'] for item in categories if item['category'] == category), None)
-        return int(frp) * int(number_of_days)
+        if category == "New" and number_of_days > 1:
+            frp = 2
+        else:
+            frp = 1
+        return int(frp)
 
     def execute(self, customer_name, videos, number_of_days):
         header = self.statement.header.format(customer_name=customer_name)
@@ -128,7 +126,7 @@ def test_hire_one_regular_video_for_two_days():
 Crazynotes  2.0
 Teeth  2.0
 You owe 4.0
-You earned 4 frequent renter points""".format(customer_name=customer_name)
+You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
 
 def test_hire_one_new_video_for_five_days():
@@ -139,5 +137,5 @@ def test_hire_one_new_video_for_five_days():
     expected_statement = """Rental Record for {customer_name}
 The Web  15.0
 You owe 15.0
-You earned 5 frequent renter points""".format(customer_name=customer_name)
+You earned 2 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
