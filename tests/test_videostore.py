@@ -23,6 +23,9 @@ class GetStatement(object):
 
     @staticmethod
     def check_video_cost(category, number_of_days):
+        # Regular - 2 for the first 2 days, and 1.5 for each day thereafter
+        # New - 3 per day
+        # Children - 1.5 for the first 3 days, and 1.5 for each day thereafter.
         categories = [
                 {'category': "Regular", 'first_day': "2.0", 'extra_days': "1.5"},
                 {'category': "New", 'first_day': "3.0", 'extra_days': "3.0"},
@@ -30,26 +33,38 @@ class GetStatement(object):
         ]
         first_day = next((item['first_day'] for item in categories if item['category'] == category), None)
         extra_days = next((item['extra_days'] for item in categories if item['category'] == category), None)
-        if number_of_days == 1:
-            cost = float(first_day)
-        elif number_of_days == 2 and category == "Regular":
-            cost = float(first_day)
-        elif number_of_days == 2:
-            cost = float(first_day) + float(extra_days)
-        return cost
+
+        if category == "New":
+            cost = float(first_day) + float(extra_days) * float(number_of_days - 1)
+            return cost
+
+        if category == "Regular":
+            if number_of_days == 1:
+                cost = float(first_day)
+            elif number_of_days == 2:
+                cost = float(first_day)
+            return cost
+
+        if category == "Children":
+            if number_of_days == 1:
+                cost = float(first_day)
+            elif number_of_days == 2:
+                cost = float(first_day) + float(extra_days)
+            return cost
 
     @staticmethod
-    def check_frequent_renter_points(category):
+    def check_frequent_renter_points(category, number_of_days):
         categories = [
             {'category': "Regular", 'points': "1"},
             {'category': "New", 'points': "1"},
             {'category': "Children", 'points': "1"}
         ]
         frp = next((item['points'] for item in categories if item['category'] == category), None)
-        return frp
+        return int(frp) * int(number_of_days)
 
     def execute(self, customer_name, videos, number_of_days):
         header = self.statement.header.format(customer_name=customer_name)
+        cost = 0
         frequent_renter_points = 0
         total = 0
         full_body = ""
@@ -57,7 +72,7 @@ class GetStatement(object):
             category = self.check_video_category(video)
             cost = self.check_video_cost(category, number_of_days)
             total += float(cost)
-            frp = self.check_frequent_renter_points(category)
+            frp = self.check_frequent_renter_points(category, number_of_days)
             frequent_renter_points += int(frp)
             body = self.statement.body.format(video=video, cost=cost)
             full_body += body
@@ -71,7 +86,7 @@ def test_user_name_is_displayed_on_statement():
     statement = GetStatement()
     customer_name = "Duncan Bell"
     videos = []
-    number_of_days = 1
+    number_of_days = 0
     expected_statement = """Rental Record for {customer_name}
 You owe 0
 You earned 0 frequent renter points""".format(customer_name=customer_name)
@@ -103,6 +118,7 @@ You owe 1.5
 You earned 1 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
 
+
 def test_hire_one_regular_video_for_two_days():
     statement = GetStatement()
     customer_name = "Duncan Bell"
@@ -112,5 +128,16 @@ def test_hire_one_regular_video_for_two_days():
 Crazynotes  2.0
 Teeth  2.0
 You owe 4.0
-You earned 2 frequent renter points""".format(customer_name=customer_name)
+You earned 4 frequent renter points""".format(customer_name=customer_name)
+    assert statement.execute(customer_name, videos, number_of_days) == expected_statement
+
+def test_hire_one_new_video_for_five_days():
+    statement = GetStatement()
+    customer_name = "Duncan Bell"
+    videos = ["The Web"]
+    number_of_days = 5
+    expected_statement = """Rental Record for {customer_name}
+The Web  15.0
+You owe 15.0
+You earned 5 frequent renter points""".format(customer_name=customer_name)
     assert statement.execute(customer_name, videos, number_of_days) == expected_statement
